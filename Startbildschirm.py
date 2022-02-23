@@ -3,17 +3,11 @@ import os
 import pygame
 
 class Button():
-    def __init__(self, x = 10, y = 10, width = 100, height = 50, name="", font=120):
+    def __init__(self, x = 10, y = 10, width = 100, height = 50):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-
-        if name != "":
-            smallfont = pygame.font.SysFont('Corbel', font) 
-            self.text = smallfont.render(name , True, (255, 255, 255)) 
-        else:
-            self.text = None
 
     def checkLocation(self, mouseX, mouseY):
         return self.x < mouseX < self.x + self.width and self.y < mouseY < self.y + self.height
@@ -28,33 +22,38 @@ class Button():
     def drawRectangle(self, screen, color):
         pygame.draw.rect(screen, color, [self.x, self.y, self.width, self.height])
 
-    def drawText(self, screen):
-        self.drawSurface(screen, self.text)
-
 
 class Startbildschirm():
 
     def __init__(self):
+        fullscreen = True
+
         with open("order.json", "r") as file:
             maps = list(json.load(file).keys())
 
         pygame.init()
+        pygame.mouse.set_cursor((8,8),(0,0),(0,0,0,0,0,0,0,0),(0,0,0,0,0,0,0,0))
         clock = pygame.time.Clock()
 
         dimension = (1000,650) 
-        screen = pygame.display.set_mode(dimension)
-        pygame.display.set_caption("Race")
+        if(not fullscreen):
+            screen = pygame.display.set_mode(dimension)
+        else:
+            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            infoObject = pygame.display.Info()
+            dimension = (infoObject.current_w, infoObject.current_h)
+        screenRatio = dimension[0] / dimension[1]
+        tmpScreen = pygame.Surface(dimension)
+        tmpScreen.set_alpha(125)
+        
+        pygame.display.set_caption("Diashow")
 
-        smallfont = pygame.font.SysFont('Corbel', 200) 
-        text = smallfont.render('Race Game' , True, (255, 255, 255)) 
+        split = 0.3
+        links = Button(0, 0, dimension[0] * split, dimension[1])
+        rechts = Button(dimension[0] * split, 0, dimension[0] * (1-split), dimension[1])
 
-        play = Button(350, 300, 300, 200, "")
-        links = Button(150, 270, 200, 220, "<", 500)
-        rechts = Button(650, 270, 200, 220, ">", 500)
-
-        hoverColor = (30, 129, 176)
-        pressColor = (21,76,121)
-        normalColor = (37, 150, 190)
+        hoverColor = (130, 130, 130, 100)
+        links.drawRectangle(tmpScreen, hoverColor)
 
         selected = 0
         displayed = -1
@@ -63,49 +62,8 @@ class Startbildschirm():
         pressed = False
         firstTime = True
         
+        imgPos = (0, 0)
         while running: 
-            screen.fill((157, 177, 187)) 
-            screen.blit(text, ((dimension[0] - text.get_width())/2, (dimension[1] - text.get_height())/4))
-            links.drawText(screen)
-            rechts.drawText(screen)
-
-            if selected != displayed:
-                selected %= len(maps)
-                displayed = selected
-                largeMap = pygame.image.load(os.path.join(os.getcwd(), "pictures" , maps[selected])).convert()
-                currentMap = pygame.transform.smoothscale(largeMap, (270, 170))
-
-            mouse = pygame.mouse.get_pos() 
-            
-            if play.checkLocation(*mouse): 
-                if pressed:
-                    play.drawRectangle(screen, pressColor)
-                    if firstTime:
-                        firstTime = False
-                        print("hallo")
-                        continue
-                else:
-                    play.drawRectangle(screen, hoverColor)
-            else:
-                play.drawRectangle(screen, normalColor)
-            play.drawText(screen)
-
-            screen.blit(currentMap, (365, 315))
-
-            if links.checkLocation(*mouse): 
-                if pressed and firstTime:
-                    firstTime = False
-                    selected -= 1
-            links.drawText(screen)
-
-            if rechts.checkLocation(*mouse): 
-                if pressed and firstTime:
-                    firstTime = False
-                    selected += 1
-            rechts.drawText(screen)
-
-            
-            pygame.display.update() 
 
             for ev in pygame.event.get(): 
                 if ev.type == pygame.KEYDOWN:
@@ -118,6 +76,47 @@ class Startbildschirm():
                 if ev.type == pygame.MOUSEBUTTONUP: 
                     pressed = False
                     firstTime = True
+
+
+            screen.fill((0, 0, 0)) 
+
+            if selected != displayed:
+                selected %= len(maps)
+                displayed = selected
+                largeMap = pygame.image.load(os.path.join(os.getcwd(), "pictures" , maps[selected])).convert()
+                imgRatio = largeMap.get_width() / largeMap.get_height()
+                if imgRatio < screenRatio:
+                    currentMap = pygame.transform.smoothscale(largeMap, (int(imgRatio*dimension[1]), dimension[1]))
+                    imgPos = (int((dimension[0] - currentMap.get_width())/2), 0)
+                elif imgRatio > screenRatio:
+                    currentMap = pygame.transform.smoothscale(largeMap, (dimension[0], int(dimension[0]/imgRatio)))
+                    imgPos = (0, int((dimension[1] - currentMap.get_height())/2))
+                else:
+                    currentMap = pygame.transform.smoothscale(largeMap, dimension)
+                    imgPos = (0, 0)
+
+
+            
+            screen.blit(currentMap, imgPos)
+
+            mouse = pygame.mouse.get_pos() 
+
+            if links.checkLocation(*mouse): 
+                if pressed:
+                    if firstTime:
+                        firstTime = False
+                        selected -= 1
+                else:
+                    screen.blit(tmpScreen, (0, 0))
+
+            if rechts.checkLocation(*mouse): 
+                if pressed:
+                    if firstTime:
+                        firstTime = False
+                        selected += 1
+
+            
+            pygame.display.update() 
             
             
             clock.tick(40)
