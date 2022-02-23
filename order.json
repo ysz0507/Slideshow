@@ -1,0 +1,10 @@
+{
+    "File1.jpg": {
+        "position": 1,
+        "name": "Erster"
+    },
+    "File2.png": {
+        "position": 2,
+        "name": "zweiter"
+    }
+}
