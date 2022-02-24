@@ -12,13 +12,6 @@ class Button():
     def checkLocation(self, mouseX, mouseY):
         return self.x < mouseX < self.x + self.width and self.y < mouseY < self.y + self.height
 
-    def drawSurface(self, screen, surface):
-        if surface == None:
-            return
-        xOffset = (self.width - surface.get_width()) / 2
-        yOffset = (self.height - surface.get_height()) / 2
-        screen.blit(surface, (self.x + xOffset, self.y + yOffset))
-
     def drawRectangle(self, screen, color):
         pygame.draw.rect(screen, color, [self.x, self.y, self.width, self.height])
 
@@ -69,6 +62,10 @@ class Startbildschirm():
                 if ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_ESCAPE:
                         running = False
+                    if ev.key == pygame.K_LEFT:
+                        selected -= 1
+                    if ev.key == pygame.K_RIGHT:
+                        selected += 1
                 if ev.type == pygame.QUIT: 
                     running = False
                 if ev.type == pygame.MOUSEBUTTONDOWN: 
