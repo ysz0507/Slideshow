@@ -73,10 +73,14 @@ class Startbildschirm():
         preview = Picture("", 0, 0, surPreview.get_width(), surPreview.get_height())
 
         sorted = []
-        with open("order.json", "r") as file:
-            data = json.load(file)
-            for name in list(data.keys()):
-                sorted.append(Picture(name))
+        try:
+            with open("order.json", "r") as file:
+                data = json.load(file)
+                for name in list(data.keys()):
+                    sorted.append(Picture(name))
+        except FileNotFoundError:
+            data = {}
+            print("No File imported")
 
         self.placePictures(sorted, surSortiert)
 
@@ -129,7 +133,7 @@ class Startbildschirm():
                     elif ev.key == pygame.K_i:
                         insertMode = True
                     elif ev.key == pygame.K_s:
-                        self.save(sorted)
+                        self.save(sorted, surPreview, font)
                     elif ev.key == pygame.K_PLUS:
                         for pic in sorted+otherImages:
                             pic.width += 10
@@ -256,6 +260,8 @@ class Startbildschirm():
         pygame.quit()
     
     def placePictures(self, pictures, surface, shiftX = 0, shiftY = 0, padding = 10):
+        if len(pictures) == 0:
+            return
         extreme = [0, padding]
         picsPerRow = int((surface.get_width() + padding) / (pictures[0].width + padding))
         shiftX += int((surface.get_width() - (picsPerRow * pictures[0].width + (picsPerRow - 1) * padding)) * 0.5)
@@ -270,7 +276,7 @@ class Startbildschirm():
                 extreme[0] = 0
                 extreme[1] += pictures[i].height + padding    
 
-    def save(self, data):
+    def save(self, data, surface, font):
         newData = {}
         for sample in data:
             newData[sample.url] = str(sample.date)
@@ -279,6 +285,20 @@ class Startbildschirm():
         f = open("order.json", "w")
         f.write(jsonData)
         f.close()
+        try:
+            with open("order.json", "r") as file:
+                data = ["Es wurde gespeichert: "] + file.readlines()
+                pygame.draw.rect(surface, (255, 255, 255), surface.get_rect())
+                pos = [3, 3]
+                for line in data:
+                    text = font.render(line.replace("\n", ""), False, (0, 0, 0))
+                    surface.blit(text, pos)
+                    pos[1] += text.get_height()
+        except FileNotFoundError:
+            print("Fehler beim Speichervorgang")
+            print(jsonData)
+
+
 
 
 
