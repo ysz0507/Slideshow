@@ -36,7 +36,7 @@ class Picture():
 
     def drawRectangle(self, screen, color):
         if self.date != None:
-            pygame.draw.rect(screen, (255, 72, 0), [self.x - 5, self.y - 5, self.width + 6, self.height + 6])
+            pygame.draw.rect(screen, (255, 255, 255), [self.x - 5, self.y - 5, self.width + 6, self.height + 6])
         pygame.draw.rect(screen, color, [self.x, self.y, self.width, self.height])
 
     def draw(self, screen):
@@ -101,12 +101,14 @@ class Startbildschirm():
             except AttributeError:
                 continue
 
-        surSortiert.fill((100, 0, 0))
-        surAlle.fill((0, 100, 0))
-        surPreview.fill((0, 0, 100))
+        gray = (130, 130, 130)
+        black = (0, 0, 0)
 
+        surSortiert.fill(gray)
+        surAlle.fill(gray)
+        surPreview.fill(black)
 
-        hoverColor = (130, 130, 130, 100)
+        hoverColor = gray
 
         running = True
         pressed = False
@@ -259,7 +261,7 @@ class Startbildschirm():
 
         pygame.quit()
     
-    def placePictures(self, pictures, surface, shiftX = 0, shiftY = 0, padding = 10):
+    def placePictures(self, pictures, surface, shiftX = 0, shiftY = 0, padding = 14):
         if len(pictures) == 0:
             return
         extreme = [0, padding]
