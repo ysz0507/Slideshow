@@ -1,6 +1,5 @@
-from ast import Dict
+
 import json
-from textwrap import indent
 import pygame
 import os
 from PIL import Image
@@ -15,10 +14,9 @@ class Picture():
         self.url = url
         self.date = date
         if url != "":
-            self.refreshMap(url)
+            self.refreshMap()
 
-    def refreshMap(self, url):
-        self.url = url
+    def refreshMap(self):
         dimension = (self.width, self.height)
         largeMap = pygame.image.load(os.path.join(os.getcwd(), "pictures" , self.url)).convert()
         imgRatio = largeMap.get_width() / largeMap.get_height()
@@ -113,6 +111,7 @@ class Startbildschirm():
         toScroll = 0
         dragPos = [0, 0]
         insertMode = False
+        scrolled = 0
         while running: 
 
             mouse = pygame.mouse.get_pos() 
@@ -126,11 +125,24 @@ class Startbildschirm():
                             self.placePictures(otherImages, surAlle, surSortiert.get_width(), surPreview.get_height())
                         else:
                             self.placePictures(sorted, surSortiert)
+                            scrolled = 0
                     elif ev.key == pygame.K_i:
                         insertMode = True
                     elif ev.key == pygame.K_s:
                         self.save(sorted)
-
+                    elif ev.key == pygame.K_PLUS:
+                        for pic in sorted+otherImages:
+                            pic.width += 10
+                            pic.height = int(pic.width / pic.ratio)
+                            pic.refreshMap()
+                            self.placePictures(sorted, surSortiert, shiftY = scrolled)
+                    elif ev.key == pygame.K_MINUS:
+                        for pic in sorted+otherImages:
+                            pic.width -= 10
+                            pic.height = int(pic.width / pic.ratio)
+                            pic.refreshMap()
+                            self.placePictures(sorted, surSortiert, shiftY = scrolled)
+                        
                 elif ev.type == pygame.KEYUP: 
                     if ev.key == pygame.K_i:
                         insertMode = False
@@ -157,7 +169,7 @@ class Startbildschirm():
                                     else:
                                         sorted.remove(drawPic)
                                     sorted.insert(pos, drawPic)
-                                    self.placePictures(sorted, surSortiert)
+                                    self.placePictures(sorted, surSortiert, shiftY = scrolled)
                         else:
                             if mouse[1] > surPreview.get_height():
                                 drawPic.x += dragPos[0]
@@ -170,8 +182,10 @@ class Startbildschirm():
 
             if toScroll != 0:
                 if mouse[0] < surSortiert.get_width():
-                    for pic in sorted:
-                        pic.y -= toScroll * scrollSize
+                    if scrolled - toScroll * scrollSize <= 0:
+                        for pic in sorted:
+                            pic.y -= toScroll * scrollSize
+                        scrolled -= toScroll * scrollSize
                 elif mouse[1] > surPreview.get_height():
                     for pic in otherImages:
                         pic.y -= toScroll * scrollSize
@@ -182,7 +196,8 @@ class Startbildschirm():
                     if firstTime:
                         if pic.checkLocation(mouse[0], mouse[1]):
                             firstTime = False
-                            preview.refreshMap(pic.url)
+                            preview.url = pic.url
+                            preview.refreshMap()
                             surPreview.fill((0, 0, 0))
                             preview.draw(surPreview)
 
@@ -208,9 +223,8 @@ class Startbildschirm():
                                             pos = i
                                             break
                                     sorted.insert(pos, pic)
-                                    self.placePictures(sorted, surSortiert)
+                                    self.placePictures(sorted, surSortiert, shiftY = scrolled)
                                     
-                            
                             dragStart = mouse
                             drawPic = pic
                     elif not insertMode:
@@ -236,13 +250,15 @@ class Startbildschirm():
             screen.blit(surPreview, (surSortiert.get_width(), 0))
             screen.blit(tmpScreen, dragPos)
 
-            pygame.display.update()             
+            pygame.display.update()
             clock.tick(40)
 
         pygame.quit()
     
     def placePictures(self, pictures, surface, shiftX = 0, shiftY = 0, padding = 10):
-        extreme = [padding, padding]
+        extreme = [0, padding]
+        picsPerRow = int((surface.get_width() + padding) / (pictures[0].width + padding))
+        shiftX += int((surface.get_width() - (picsPerRow * pictures[0].width + (picsPerRow - 1) * padding)) * 0.5)
         i = 0
         while i < len(pictures):
             if extreme[0] + pictures[i].width < surface.get_width():
@@ -251,7 +267,7 @@ class Startbildschirm():
                 extreme[0] += padding + pictures[i].width
                 i += 1
             else:
-                extreme[0] = padding
+                extreme[0] = 0
                 extreme[1] += pictures[i].height + padding    
 
     def save(self, data):

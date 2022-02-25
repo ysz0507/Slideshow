@@ -19,7 +19,7 @@ class Button():
 class Startbildschirm():
 
     def __init__(self):
-        fullscreen = True
+        fullscreen = False
 
         with open("order.json", "r") as file:
             maps = list(json.load(file).keys())
@@ -95,8 +95,6 @@ class Startbildschirm():
                 else:
                     currentMap.fill((0, 0, 0))
                     imgPos = (0, 0)
-
-
             
             screen.blit(currentMap, imgPos)
 
