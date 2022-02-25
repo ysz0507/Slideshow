@@ -1,4 +1,6 @@
+from ast import Dict
 import json
+from textwrap import indent
 import pygame
 import os
 from PIL import Image
@@ -46,7 +48,7 @@ class Picture():
 class Startbildschirm():
 
     def __init__(self):
-        fullscreen = True
+        fullscreen = False
         
         pygame.init()
         clock = pygame.time.Clock()
@@ -93,14 +95,9 @@ class Startbildschirm():
         for pic in sorted+otherImages:
             try:
                 pic.date = Image.open("pictures/" + pic.url)._getexif().get(306)
+                pic.number = int(pic.date.replace(":","").replace(" ", ""))
             except AttributeError:
-                print(pic.url)
-            
-
-        #image = Image.open("pictures/A221E0C4-5D6E-4E7A-AD7C-036E0EF6C9F2.jpg")
-        image = Image.open("pictures/haha.jpg")
-        EXIF_data = image._getexif()
-        print(EXIF_data.get(306))
+                continue
 
         surSortiert.fill((100, 0, 0))
         surAlle.fill((0, 100, 0))
@@ -115,6 +112,7 @@ class Startbildschirm():
         scrollSize = 30
         toScroll = 0
         dragPos = [0, 0]
+        insertMode = False
         while running: 
 
             mouse = pygame.mouse.get_pos() 
@@ -123,11 +121,19 @@ class Startbildschirm():
                 if ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_ESCAPE:
                         running = False
-                    if ev.key == pygame.K_f:
+                    elif ev.key == pygame.K_f:
                         if mouse[0] > surSortiert.get_width():
                             self.placePictures(otherImages, surAlle, surSortiert.get_width(), surPreview.get_height())
                         else:
                             self.placePictures(sorted, surSortiert)
+                    elif ev.key == pygame.K_i:
+                        insertMode = True
+                    elif ev.key == pygame.K_s:
+                        self.save(sorted)
+
+                elif ev.type == pygame.KEYUP: 
+                    if ev.key == pygame.K_i:
+                        insertMode = False
                 elif ev.type == pygame.QUIT: 
                     running = False
                 elif ev.type == pygame.MOUSEBUTTONDOWN: 
@@ -185,17 +191,29 @@ class Startbildschirm():
                             textRect.midtop = (preview.x + preview.width/2, preview.y) 
                             pygame.draw.rect(surPreview, (255, 255, 255), textRect)
                             surPreview.blit(text, textRect)
-                            print(pic.date)
+
                             if pic.date != None:
                                 text = font.render(pic.date, False, (0, 0, 0))
                                 textRect = text.get_rect()
                                 textRect.midbottom = (preview.x + preview.width/2, preview.y + preview.height) 
                                 pygame.draw.rect(surPreview, (255, 255, 255), textRect)
                                 surPreview.blit(text, textRect)
+
+                                if pic in otherImages and insertMode:
+                                    otherImages.remove(pic)
+
+                                    pos = len(sorted)
+                                    for i, old in enumerate(sorted):
+                                        if old.date != None and old.number > pic.number:
+                                            pos = i
+                                            break
+                                    sorted.insert(pos, pic)
+                                    self.placePictures(sorted, surSortiert)
+                                    
                             
                             dragStart = mouse
                             drawPic = pic
-                    else:
+                    elif not insertMode:
                         dragPos[0] = mouse[0] - dragStart[0]
                         dragPos[1] = mouse[1] - dragStart[1]
                         tmpScreen.fill((255, 255, 255, 0))
@@ -234,9 +252,18 @@ class Startbildschirm():
                 i += 1
             else:
                 extreme[0] = padding
-                extreme[1] += pictures[i].height + padding            
+                extreme[1] += pictures[i].height + padding    
 
-            
+    def save(self, data):
+        newData = {}
+        for sample in data:
+            newData[sample.url] = str(sample.date)
+        jsonData = json.dumps(newData, indent = 4)
+
+        f = open("order.json", "w")
+        f.write(jsonData)
+        f.close()
+
 
 
 if __name__ == '__main__':

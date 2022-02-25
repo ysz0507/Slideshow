@@ -78,18 +78,22 @@ class Startbildschirm():
             screen.fill((0, 0, 0)) 
 
             if selected != displayed:
-                selected %= len(maps)
+                selected %= len(maps) + 1
                 displayed = selected
-                largeMap = pygame.image.load(os.path.join(os.getcwd(), "pictures" , maps[selected])).convert()
-                imgRatio = largeMap.get_width() / largeMap.get_height()
-                if imgRatio < screenRatio:
-                    currentMap = pygame.transform.smoothscale(largeMap, (int(imgRatio*dimension[1]), dimension[1]))
-                    imgPos = (int((dimension[0] - currentMap.get_width())/2), 0)
-                elif imgRatio > screenRatio:
-                    currentMap = pygame.transform.smoothscale(largeMap, (dimension[0], int(dimension[0]/imgRatio)))
-                    imgPos = (0, int((dimension[1] - currentMap.get_height())/2))
+                if(selected != len(maps)):
+                    largeMap = pygame.image.load(os.path.join(os.getcwd(), "pictures" , maps[selected])).convert()
+                    imgRatio = largeMap.get_width() / largeMap.get_height()
+                    if imgRatio < screenRatio:
+                        currentMap = pygame.transform.smoothscale(largeMap, (int(imgRatio*dimension[1]), dimension[1]))
+                        imgPos = (int((dimension[0] - currentMap.get_width())/2), 0)
+                    elif imgRatio > screenRatio:
+                        currentMap = pygame.transform.smoothscale(largeMap, (dimension[0], int(dimension[0]/imgRatio)))
+                        imgPos = (0, int((dimension[1] - currentMap.get_height())/2))
+                    else:
+                        currentMap = pygame.transform.smoothscale(largeMap, dimension)
+                        imgPos = (0, 0)
                 else:
-                    currentMap = pygame.transform.smoothscale(largeMap, dimension)
+                    currentMap.fill((0, 0, 0))
                     imgPos = (0, 0)
 
 
