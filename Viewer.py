@@ -22,8 +22,8 @@ class Startbildschirm():
         fullscreen = True
 
         with open("order.json", "r") as file:
-            maps = list(json.load(file).keys())
-
+            maps = list(json.load(file).get("order"))
+        
         pygame.init()
         pygame.mouse.set_cursor((8,8),(0,0),(0,0,0,0,0,0,0,0),(0,0,0,0,0,0,0,0))
         clock = pygame.time.Clock()

@@ -73,13 +73,14 @@ class Startbildschirm():
         preview = Picture("", 0, 0, surPreview.get_width(), surPreview.get_height())
 
         sorted = []
+
         try:
             with open("order.json", "r") as file:
                 data = json.load(file)
-                for name in list(data.keys()):
+                for name in list(data.get("order")):
                     sorted.append(Picture(name))
         except FileNotFoundError:
-            data = {}
+            data = {"order":[], "ignore":[]}
             print("No File imported")
 
         self.placePictures(sorted, surSortiert)
@@ -89,10 +90,12 @@ class Startbildschirm():
         obj = os.scandir("pictures")
         for entry in obj :
             if entry.is_file() and entry.name != ".DS_Store" and entry.name[-4:] in (".png", ".jpg", ".tif", ".gif"):
-                if not entry.name in list(data.keys()):
+                if not entry.name in data.get("order")+data.get("ignore"):
                     otherImages.append(Picture(entry.name))
         self.placePictures(otherImages, surAlle, surSortiert.get_width(), surPreview.get_height())
         obj.close()
+
+        deleted = data.get("ignore")
         
         for pic in sorted+otherImages:
             try:
@@ -117,6 +120,7 @@ class Startbildschirm():
         toScroll = 0
         dragPos = [0, 0]
         insertMode = False
+        deleteMode = False
         scrolled = 0
         while running: 
 
@@ -134,8 +138,10 @@ class Startbildschirm():
                             scrolled = 0
                     elif ev.key == pygame.K_i:
                         insertMode = True
+                    elif ev.key == pygame.K_d:
+                        deleteMode = True
                     elif ev.key == pygame.K_s:
-                        self.save(sorted, surPreview, font)
+                        self.save(sorted, deleted, surPreview, font)
                     elif ev.key == pygame.K_PLUS:
                         for pic in sorted+otherImages:
                             pic.width += 10
@@ -152,6 +158,8 @@ class Startbildschirm():
                 elif ev.type == pygame.KEYUP: 
                     if ev.key == pygame.K_i:
                         insertMode = False
+                    elif ev.key == pygame.K_d:
+                        deleteMode = False
                 elif ev.type == pygame.QUIT: 
                     running = False
                 elif ev.type == pygame.MOUSEBUTTONDOWN: 
@@ -201,38 +209,45 @@ class Startbildschirm():
                 for pic in sorted + otherImages:
                     if firstTime:
                         if pic.checkLocation(mouse[0], mouse[1]):
-                            firstTime = False
-                            preview.url = pic.url
-                            preview.refreshMap()
-                            surPreview.fill((0, 0, 0))
-                            preview.draw(surPreview)
+                            if not deleteMode:
+                                firstTime = False
+                                preview.url = pic.url
+                                preview.refreshMap()
+                                surPreview.fill((0, 0, 0))
+                                preview.draw(surPreview)
 
-                            text = font.render(preview.url, False, (0, 0, 0))
-                            textRect = text.get_rect()
-                            textRect.midtop = (preview.x + preview.width/2, preview.y) 
-                            pygame.draw.rect(surPreview, (255, 255, 255), textRect)
-                            surPreview.blit(text, textRect)
-
-                            if pic.date != None:
-                                text = font.render(pic.date, False, (0, 0, 0))
+                                text = font.render(preview.url, False, (0, 0, 0))
                                 textRect = text.get_rect()
-                                textRect.midbottom = (preview.x + preview.width/2, preview.y + preview.height) 
+                                textRect.midtop = (preview.x + preview.width/2, preview.y) 
                                 pygame.draw.rect(surPreview, (255, 255, 255), textRect)
                                 surPreview.blit(text, textRect)
 
-                                if pic in otherImages and insertMode:
-                                    otherImages.remove(pic)
+                                if pic.date != None:
+                                    text = font.render(pic.date, False, (0, 0, 0))
+                                    textRect = text.get_rect()
+                                    textRect.midbottom = (preview.x + preview.width/2, preview.y + preview.height) 
+                                    pygame.draw.rect(surPreview, (255, 255, 255), textRect)
+                                    surPreview.blit(text, textRect)
 
-                                    pos = len(sorted)
-                                    for i, old in enumerate(sorted):
-                                        if old.date != None and old.number > pic.number:
-                                            pos = i
-                                            break
-                                    sorted.insert(pos, pic)
-                                    self.placePictures(sorted, surSortiert, shiftY = scrolled)
-                                    
-                            dragStart = mouse
-                            drawPic = pic
+                                    if pic in otherImages and insertMode:
+                                        otherImages.remove(pic)
+
+                                        pos = len(sorted)
+                                        for i, old in enumerate(sorted):
+                                            if old.date != None and old.number > pic.number:
+                                                pos = i
+                                                break
+                                        sorted.insert(pos, pic)
+                                        self.placePictures(sorted, surSortiert, shiftY = scrolled)
+                                        
+                                dragStart = mouse
+                                drawPic = pic
+                            else:
+                                if pic in sorted:
+                                    sorted.remove(pic)
+                                else:
+                                    otherImages.remove(pic)
+                                deleted.append(pic.url)
                     elif not insertMode:
                         dragPos[0] = mouse[0] - dragStart[0]
                         dragPos[1] = mouse[1] - dragStart[1]
@@ -278,11 +293,11 @@ class Startbildschirm():
                 extreme[0] = 0
                 extreme[1] += pictures[i].height + padding    
 
-    def save(self, data, surface, font):
-        newData = {}
-        for sample in data:
-            newData[sample.url] = str(sample.date)
-        jsonData = json.dumps(newData, indent = 4)
+    def save(self, sortiert, ignore, surface, font):
+        newData = []
+        for sample in sortiert:
+            newData.append(sample.url)
+        jsonData = json.dumps({"order":newData, "ignore":ignore}, indent = 4)
 
         f = open("order.json", "w")
         f.write(jsonData)
