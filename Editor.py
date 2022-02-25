@@ -46,7 +46,7 @@ class Picture():
 class Startbildschirm():
 
     def __init__(self):
-        fullscreen = False
+        fullscreen = True
         
         pygame.init()
         clock = pygame.time.Clock()
@@ -88,7 +88,7 @@ class Startbildschirm():
 
         obj = os.scandir("pictures")
         for entry in obj :
-            if entry.is_file() and entry.name != ".DS_Store":
+            if entry.is_file() and entry.name != ".DS_Store" and entry.name[-4:] in (".png", ".jpg", ".tif", ".gif"):
                 if not entry.name in list(data.keys()):
                     otherImages.append(Picture(entry.name))
         self.placePictures(otherImages, surAlle, surSortiert.get_width(), surPreview.get_height())
