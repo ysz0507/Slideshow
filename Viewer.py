@@ -1,6 +1,7 @@
 import json
 import os
 import pygame
+import time
 
 class Button():
     def __init__(self, x = 10, y = 10, width = 100, height = 50):
@@ -19,7 +20,9 @@ class Button():
 class Startbildschirm():
 
     def __init__(self):
-        fullscreen = True
+        fullscreen = False
+        automatisch = True
+        intervall = 5
 
         with open("order.json", "r") as file:
             maps = list(json.load(file).get("order"))
@@ -56,8 +59,10 @@ class Startbildschirm():
         firstTime = True
         
         imgPos = (0, 0)
-        while running: 
 
+        last = int(time.time())
+
+        while running: 
             for ev in pygame.event.get(): 
                 if ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_ESCAPE:
@@ -73,7 +78,10 @@ class Startbildschirm():
                 if ev.type == pygame.MOUSEBUTTONUP: 
                     pressed = False
                     firstTime = True
-
+                
+            if automatisch and int(time.time()) - last > intervall:
+                selected += 1
+                last = int(time.time())
 
             screen.fill((0, 0, 0)) 
 
