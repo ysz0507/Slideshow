@@ -20,9 +20,11 @@ class Button():
 class Startbildschirm():
 
     def __init__(self):
-        fullscreen = False
+        fullscreen = True
         automatisch = True
         intervall = 5
+        animationSpeed = 23
+        acceleration = 0.5
 
         with open("order.json", "r") as file:
             maps = list(json.load(file).get("order"))
@@ -61,6 +63,8 @@ class Startbildschirm():
         imgPos = (0, 0)
 
         last = int(time.time())
+        surAnimation = pygame.Surface((dimension[0] * 2, dimension[1]))
+        currentMap = pygame.Surface(dimension)
 
         while running: 
             for ev in pygame.event.get(): 
@@ -83,11 +87,13 @@ class Startbildschirm():
                 selected += 1
                 last = int(time.time())
 
-            screen.fill((0, 0, 0)) 
-
             if selected != displayed:
                 selected %= len(maps) + 1
                 displayed = selected
+                animation = screen.get_width()
+                surAnimation.fill((0, 0, 0))
+                surAnimation.blit(currentMap, imgPos)
+
                 if(selected != len(maps)):
                     largeMap = pygame.image.load(os.path.join(os.getcwd(), "pictures" , maps[selected])).convert()
                     imgRatio = largeMap.get_width() / largeMap.get_height()
@@ -100,11 +106,23 @@ class Startbildschirm():
                     else:
                         currentMap = pygame.transform.smoothscale(largeMap, dimension)
                         imgPos = (0, 0)
+                    
                 else:
                     currentMap.fill((0, 0, 0))
                     imgPos = (0, 0)
+                surAnimation.blit(currentMap, (imgPos[0] + animation, imgPos[1]))
+                speed = animationSpeed
             
-            screen.blit(currentMap, imgPos)
+            if animation >= animationSpeed:
+                #speed = 1 - abs(animation-screen.get_width()*0.5) / (screen.get_width()*0.5)
+                #speed *= 4
+                #speed = speed**2
+                animation -= animationSpeed
+            elif animation != 0:
+                animation = 0
+            
+            screen.fill((0, 0, 0))
+            screen.blit(surAnimation.subsurface(screen.get_width() - animation, 0, screen.get_width(), screen.get_height()), (0, 0))
 
             mouse = pygame.mouse.get_pos() 
 
@@ -124,8 +142,6 @@ class Startbildschirm():
 
             
             pygame.display.update() 
-            
-            
             clock.tick(40)
 
         pygame.quit() 
