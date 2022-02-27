@@ -69,8 +69,8 @@ class Startbildschirm():
         splitY = 0.6
         surSortiert = pygame.Surface((dimension[0] * splitX, dimension[1]))
         surAlle = pygame.Surface((dimension[0] * (1-splitX), dimension[1] * (1-splitY)))
-        surPreview = pygame.Surface((dimension[0] * (1-splitX), dimension[1] * splitY))
-        preview = Picture("", 0, 0, surPreview.get_width(), surPreview.get_height())
+        self.surPreview = pygame.Surface((dimension[0] * (1-splitX), dimension[1] * splitY))
+        self.preview = Picture("", 0, 0, self.surPreview.get_width(), self.surPreview.get_height())
 
         sorted = []
 
@@ -89,10 +89,10 @@ class Startbildschirm():
 
         obj = os.scandir("pictures")
         for entry in obj :
-            if entry.is_file() and entry.name != ".DS_Store" and entry.name[-4:] in (".png", ".jpg", ".tif", ".gif"):
+            if entry.is_file() and entry.name != ".DS_Store" and entry.name[-4:] in (".png", ".jpg", "jpeg", ".tif", ".gif"):
                 if not entry.name in data.get("order")+data.get("ignore"):
                     otherImages.append(Picture(entry.name))
-        self.placePictures(otherImages, surAlle, surSortiert.get_width(), surPreview.get_height())
+        self.placePictures(otherImages, surAlle, surSortiert.get_width(), self.surPreview.get_height())
         obj.close()
 
         deleted = data.get("ignore")
@@ -109,14 +109,14 @@ class Startbildschirm():
 
         surSortiert.fill(gray)
         surAlle.fill(gray)
-        surPreview.fill(black)
+        self.surPreview.fill(black)
 
         hoverColor = gray
 
         running = True
         pressed = False
         firstTime = True
-        scrollSize = 30
+        scrollSize = 60
         toScroll = 0
         dragPos = [0, 0]
         insertMode = False
@@ -132,7 +132,7 @@ class Startbildschirm():
                         running = False
                     elif ev.key == pygame.K_f:
                         if mouse[0] > surSortiert.get_width():
-                            self.placePictures(otherImages, surAlle, surSortiert.get_width(), surPreview.get_height())
+                            self.placePictures(otherImages, surAlle, surSortiert.get_width(), self.surPreview.get_height())
                         else:
                             self.placePictures(sorted, surSortiert)
                             scrolled = 0
@@ -141,7 +141,7 @@ class Startbildschirm():
                     elif ev.key == pygame.K_d:
                         deleteMode = True
                     elif ev.key == pygame.K_s:
-                        self.save(sorted, deleted, surPreview, font)
+                        self.save(sorted, deleted, self.surPreview, font)
                     elif ev.key == pygame.K_PLUS:
                         for pic in sorted+otherImages:
                             pic.width += 10
@@ -154,6 +154,10 @@ class Startbildschirm():
                             pic.height = int(pic.width / pic.ratio)
                             pic.refreshMap()
                             self.placePictures(sorted, surSortiert, shiftY = scrolled)
+                    elif ev.key == pygame.K_RIGHT and self.preview.url != "" and drawPic in sorted[:-1]:
+                        self.previewUrl(sorted[sorted.index(drawPic) + 1], font)
+                        drawPic = sorted[sorted.index(drawPic) + 1]
+
                         
                 elif ev.type == pygame.KEYUP: 
                     if ev.key == pygame.K_i:
@@ -185,7 +189,7 @@ class Startbildschirm():
                                     sorted.insert(pos, drawPic)
                                     self.placePictures(sorted, surSortiert, shiftY = scrolled)
                         else:
-                            if mouse[1] > surPreview.get_height():
+                            if mouse[1] > self.surPreview.get_height():
                                 drawPic.x += dragPos[0]
                                 drawPic.y += dragPos[1]
                                 if drawPic in sorted:
@@ -200,7 +204,7 @@ class Startbildschirm():
                         for pic in sorted:
                             pic.y -= toScroll * scrollSize
                         scrolled -= toScroll * scrollSize
-                elif mouse[1] > surPreview.get_height():
+                elif mouse[1] > self.surPreview.get_height():
                     for pic in otherImages:
                         pic.y -= toScroll * scrollSize
                 toScroll = 0
@@ -211,23 +215,9 @@ class Startbildschirm():
                         if pic.checkLocation(mouse[0], mouse[1]):
                             if not deleteMode:
                                 firstTime = False
-                                preview.url = pic.url
-                                preview.refreshMap()
-                                surPreview.fill((0, 0, 0))
-                                preview.draw(surPreview)
-
-                                text = font.render(preview.url, False, (0, 0, 0))
-                                textRect = text.get_rect()
-                                textRect.midtop = (preview.x + preview.width/2, preview.y) 
-                                pygame.draw.rect(surPreview, (255, 255, 255), textRect)
-                                surPreview.blit(text, textRect)
+                                self.previewUrl(pic, font)
 
                                 if pic.date != None:
-                                    text = font.render(pic.date, False, (0, 0, 0))
-                                    textRect = text.get_rect()
-                                    textRect.midbottom = (preview.x + preview.width/2, preview.y + preview.height) 
-                                    pygame.draw.rect(surPreview, (255, 255, 255), textRect)
-                                    surPreview.blit(text, textRect)
 
                                     if pic in otherImages and insertMode:
                                         otherImages.remove(pic)
@@ -258,7 +248,7 @@ class Startbildschirm():
 
 
             screen.blit(surSortiert, (0, 0))
-            screen.blit(surAlle, (surSortiert.get_width(), surPreview.get_height()))
+            screen.blit(surAlle, (surSortiert.get_width(), self.surPreview.get_height()))
 
             for pic in sorted:
                 pic.drawRectangle(screen, hoverColor)
@@ -268,7 +258,7 @@ class Startbildschirm():
                 pic.drawRectangle(screen, hoverColor)
                 pic.draw(screen)
 
-            screen.blit(surPreview, (surSortiert.get_width(), 0))
+            screen.blit(self.surPreview, (surSortiert.get_width(), 0))
             screen.blit(tmpScreen, dragPos)
 
             pygame.display.update()
@@ -293,6 +283,25 @@ class Startbildschirm():
                 extreme[0] = 0
                 extreme[1] += pictures[i].height + padding    
 
+    def previewUrl(self, pic, font):
+        self.preview.url = pic.url
+        self.preview.refreshMap()
+        self.surPreview.fill((0, 0, 0))
+        self.preview.draw(self.surPreview)
+
+        text = font.render(self.preview.url, False, (0, 0, 0))
+        textRect = text.get_rect()
+        textRect.midtop = (self.preview.x + self.preview.width/2, self.preview.y) 
+        pygame.draw.rect(self.surPreview, (255, 255, 255), textRect)
+        self.surPreview.blit(text, textRect)
+
+        if pic.date != None:
+            text = font.render(pic.date, False, (0, 0, 0))
+            textRect = text.get_rect()
+            textRect.midbottom = (self.preview.x + self.preview.width/2, self.preview.y + self.preview.height) 
+            pygame.draw.rect(self.surPreview, (255, 255, 255), textRect)
+            self.surPreview.blit(text, textRect)
+    
     def save(self, sortiert, ignore, surface, font):
         newData = []
         for sample in sortiert:

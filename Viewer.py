@@ -23,8 +23,8 @@ class Startbildschirm():
         fullscreen = True
         automatisch = True
         intervall = 5
-        animationSpeed = 23
-        acceleration = 0.5
+        dock = 10
+        acceleration = 1
 
         with open("order.json", "r") as file:
             maps = list(json.load(file).get("order"))
@@ -110,19 +110,22 @@ class Startbildschirm():
                 else:
                     currentMap.fill((0, 0, 0))
                     imgPos = (0, 0)
-                surAnimation.blit(currentMap, (imgPos[0] + animation, imgPos[1]))
-                speed = animationSpeed
+                surAnimation.blit(currentMap, (imgPos[0] + int(animation), imgPos[1]))
+                speed = 0.1
             
-            if animation >= animationSpeed:
-                #speed = 1 - abs(animation-screen.get_width()*0.5) / (screen.get_width()*0.5)
-                #speed *= 4
-                #speed = speed**2
-                animation -= animationSpeed
+            if speed > 0 and animation > dock:
+                if(animation >= screen.get_width() * 0.5):
+                    speed += acceleration
+                elif(animation < screen.get_width() * 0.5):
+                    speed -= acceleration
+                
+                animation -= speed
             elif animation != 0:
-                animation = 0
+                animation = 0.0
+                speed = 0.0
             
             screen.fill((0, 0, 0))
-            screen.blit(surAnimation.subsurface(screen.get_width() - animation, 0, screen.get_width(), screen.get_height()), (0, 0))
+            screen.blit(surAnimation.subsurface(screen.get_width() - int(animation), 0, screen.get_width(), screen.get_height()), (0, 0))
 
             mouse = pygame.mouse.get_pos() 
 
