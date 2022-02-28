@@ -48,7 +48,7 @@ class Startbildschirm():
     def __init__(self):
         fullscreen = False
         
-        #initialize Pygame and GUI
+        # initialize Pygame and GUI
         pygame.init()
         
         self.font = pygame.font.SysFont('arialnarrow', 20) 
@@ -71,7 +71,7 @@ class Startbildschirm():
         self.surPreview = pygame.Surface((dimension[0] * (1-splitX), dimension[1] * splitY))
         self.preview = Picture("", 0, 0, self.surPreview.get_width(), self.surPreview.get_height())
 
-        #load data
+        # load data
         self.sorted = []
         try:
             with open("order.json", "r") as file:
@@ -125,9 +125,10 @@ class Startbildschirm():
 
         while running: 
 
-            #handlich events
+            # handling events
             mouse = pygame.mouse.get_pos() 
             for ev in pygame.event.get(): 
+
                 if ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_ESCAPE:
                         running = False
@@ -168,9 +169,12 @@ class Startbildschirm():
                         insertMode = False
                     elif ev.key == pygame.K_d:
                         deleteMode = False
+                
                 elif ev.type == pygame.QUIT: 
                     running = False
+
                 elif ev.type == pygame.MOUSEBUTTONDOWN: 
+                    # 4 and 5 -> Mousewheel up and down
                     if ev.button == 4:
                         toScroll -= 1
                     elif ev.button == 5:
@@ -248,9 +252,8 @@ class Startbildschirm():
                         self.tmpScreen.fill((255, 255, 255, 0))
                         drawPic.draw(self.tmpScreen)
 
+            # draw Changes
             self.screen.fill((0, 0, 0)) 
-
-
             self.screen.blit(self.surSortiert, (0, 0))
             self.screen.blit(self.surAlle, (self.surSortiert.get_width(), self.surPreview.get_height()))
 
@@ -327,12 +330,6 @@ class Startbildschirm():
         except FileNotFoundError:
             print("Fehler beim Speichervorgang")
             print(jsonData)
-
-    #def writeText(self, screen, point, center = True):
-
-
-
-
 
 
 if __name__ == '__main__':
