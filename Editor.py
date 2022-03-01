@@ -196,6 +196,7 @@ class Startbildschirm():
                                         self.sorted.remove(drawPic)
                                     self.sorted.insert(pos, drawPic)
                                     self.placePictures(self.sorted, self.surSortiert, shiftY = scrolled)
+                                    print("inserted:" + str(i))
                         else:
                             if mouse[1] > self.surPreview.get_height():
                                 drawPic.x += dragPos[0]
