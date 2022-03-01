@@ -196,6 +196,7 @@ class Startbildschirm():
                                         else:
                                             self.sorted.remove(drawPic)
                                         self.sorted.insert(pos, drawPic)
+                                        print("inserted:" + str(i))
                             else:
                                 self.sorted.append(drawPic)
                                 self.otherImages.remove(drawPic)
