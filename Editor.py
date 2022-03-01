@@ -3,6 +3,7 @@ import json
 import pygame
 import os
 from PIL import Image
+import Viewer
 
 class Picture():
     def __init__(self, url, x = 10, y = 10, width = 200, height = 140, date = None):
@@ -121,7 +122,8 @@ class Startbildschirm():
         pressed = False
         firstTime = True
         toScroll = 0
-        dragPos = [0, 0]
+        dragPos = list(pygame.mouse.get_pos())
+        dragStart = pygame.mouse.get_pos()
         insertMode = False
         deleteMode = False
         scrolled = 0
@@ -188,10 +190,12 @@ class Startbildschirm():
                         toScroll += 1
                     else:
                         pressed = True
+
                 elif ev.type == pygame.MOUSEBUTTONUP: 
                     pressed = False
                     firstTime = True
                     self.tmpScreen.fill((255, 255, 255, 0))
+                    dragStart = [0, 0]
                     if dragPos != [0, 0]:
                         if mouse[0] < self.surSortiert.get_width():
                             if len(self.sorted) > 0:
@@ -215,8 +219,7 @@ class Startbildschirm():
                                 if drawPic in self.sorted:
                                     self.sorted.remove(drawPic)
                                     self.otherImages.insert(0, drawPic)
-                                else:
-                                    self.otherImages.insert(0, self.otherImages.pop(self.otherImages.index(drawPic)))
+                                    
                         dragPos[0] = 0
                         dragPos[1] = 0
 
@@ -234,12 +237,16 @@ class Startbildschirm():
                 toScroll = 0
 
             if pressed:
-                for pic in self.sorted + self.otherImages:
-                    if firstTime:
+                if firstTime:
+                    firstTime = False
+                    if self.preview.checkLocation(mouse[0], mouse[1]):
+                        print("klick")
+
+                    for pic in self.sorted + self.otherImages:
                         if pic.checkLocation(mouse[0], mouse[1]):
+                            
                             if not deleteMode:
                                 # normal click on picture
-                                firstTime = False
                                 self.previewUrl(pic)
 
                                 if pic.date != None:
@@ -264,12 +271,16 @@ class Startbildschirm():
                                 else:
                                     self.otherImages.remove(pic)
                                 self.deleted.append(pic.url)
-                    elif not insertMode:
-                        # dragging
-                        dragPos[0] = mouse[0] - dragStart[0]
-                        dragPos[1] = mouse[1] - dragStart[1]
-                        self.tmpScreen.fill((255, 255, 255, 0))
-                        drawPic.draw(self.tmpScreen)
+                            break
+                            
+                        
+                elif not insertMode and dragStart != [0, 0] and self.preview.url != "":
+                    # dragging
+                    dragPos[0] = mouse[0] - dragStart[0]
+                    dragPos[1] = mouse[1] - dragStart[1]
+                    self.tmpScreen.fill((255, 255, 255, 0))
+                    drawPic.draw(self.tmpScreen)
+                
 
             # draw Changes
             self.screen.fill((0, 0, 0)) 
@@ -313,6 +324,9 @@ class Startbildschirm():
                 extreme[1] += pictures[i].height + padding    
 
     def previewUrl(self, pic):
+        if pic in self.otherImages:
+            self.otherImages.insert(0, self.otherImages.pop(self.otherImages.index(pic)))
+
         self.preview.url = pic.url
         self.preview.refreshMap()
         self.surPreview.fill((0, 0, 0))

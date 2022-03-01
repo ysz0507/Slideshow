@@ -17,7 +17,7 @@ class Button():
         pygame.draw.rect(screen, color, [self.x, self.y, self.width, self.height])
 
 
-class Startbildschirm():
+class Viewer():
 
     def __init__(self):
         fullscreen = True
@@ -153,4 +153,4 @@ class Startbildschirm():
 
 
 if __name__ == '__main__':
-    start = Startbildschirm()
+    start = Viewer()
