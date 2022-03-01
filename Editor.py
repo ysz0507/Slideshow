@@ -187,15 +187,19 @@ class Startbildschirm():
                     self.tmpScreen.fill((255, 255, 255, 0))
                     if dragPos != [0, 0]:
                         if mouse[0] < self.surSortiert.get_width():
-                            for i, pic in enumerate(self.sorted):
-                                if pic.checkLocation(mouse[0], mouse[1]):
-                                    pos = i
-                                    if drawPic in self.otherImages:
-                                        self.otherImages.remove(drawPic)
-                                    else:
-                                        self.sorted.remove(drawPic)
-                                    self.sorted.insert(pos, drawPic)
-                                    self.placePictures(self.sorted, self.surSortiert, shiftY = scrolled)
+                            if len(self.sorted) > 0:
+                                for i, pic in enumerate(self.sorted):
+                                    if pic.checkLocation(mouse[0], mouse[1]):
+                                        pos = i
+                                        if drawPic in self.otherImages:
+                                            self.otherImages.remove(drawPic)
+                                        else:
+                                            self.sorted.remove(drawPic)
+                                        self.sorted.insert(pos, drawPic)
+                            else:
+                                self.sorted.append(drawPic)
+                                self.otherImages.remove(drawPic)
+                            self.placePictures(self.sorted, self.surSortiert, shiftY = scrolled)
                         else:
                             if mouse[1] > self.surPreview.get_height():
                                 drawPic.x += dragPos[0]
@@ -222,6 +226,7 @@ class Startbildschirm():
                     if firstTime:
                         if pic.checkLocation(mouse[0], mouse[1]):
                             if not deleteMode:
+                                # normal click on picture
                                 firstTime = False
                                 self.previewUrl(pic)
 
@@ -241,12 +246,14 @@ class Startbildschirm():
                                 dragStart = mouse
                                 drawPic = pic
                             else:
+                                # delete (d is pressed)
                                 if pic in self.sorted:
                                     self.sorted.remove(pic)
                                 else:
                                     self.otherImages.remove(pic)
                                 self.deleted.append(pic.url)
                     elif not insertMode:
+                        # dragging
                         dragPos[0] = mouse[0] - dragStart[0]
                         dragPos[1] = mouse[1] - dragStart[1]
                         self.tmpScreen.fill((255, 255, 255, 0))
@@ -323,10 +330,19 @@ class Startbildschirm():
                 data = ["Es wurde gespeichert: "] + file.readlines()
                 pygame.draw.rect(surface, (255, 255, 255), surface.get_rect())
                 pos = [3, 3]
+                maxWidth = 0
                 for line in data:
                     text = self.font.render(line.replace("\n", ""), False, (0, 0, 0))
-                    surface.blit(text, pos)
-                    pos[1] += text.get_height()
+                    maxWidth = max(text.get_width(), maxWidth)
+                    if pos[1] + text.get_height() < surface.get_height():
+                        surface.blit(text, pos)
+                        pos[1] += text.get_height()
+                    else:
+                        pos[0] += maxWidth
+                        pos[1] = 3
+                        surface.blit(text, pos)
+                        pos[1] += text.get_height()
+                        maxWidth = text.get_width()
         except FileNotFoundError:
             print("Fehler beim Speichervorgang")
             print(jsonData)
