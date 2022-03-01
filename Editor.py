@@ -38,6 +38,9 @@ class Picture():
         if self.date != None:
             pygame.draw.rect(screen, (255, 255, 255), [self.x - 5, self.y - 5, self.width + 6, self.height + 6])
         pygame.draw.rect(screen, color, [self.x, self.y, self.width, self.height])
+    
+    def drawFlag(self, screen, color):
+        pygame.draw.polygon(screen, color, [(self.x, self.y), (self.x + int(self.width/3), self.y), (self.x, self.y + int(self.height/3))])
 
     def draw(self, screen):
         screen.blit(self.img, (self.imgPos[0] + self.x, self.imgPos[1] + self.y))
@@ -103,15 +106,15 @@ class Startbildschirm():
                 continue
 
     def mainloop(self):
-        gray = (130, 130, 130)
-        black = (0, 0, 0)
+        GRAY = (130, 130, 130)
+        BLACK = (0, 0, 0)
+        MARKUP_COLOR = (226,135,67)
+
         clock = pygame.time.Clock()
 
-        self.surSortiert.fill(gray)
-        self.surAlle.fill(gray)
-        self.surPreview.fill(black)
-
-        hoverColor = gray
+        self.surSortiert.fill(GRAY)
+        self.surAlle.fill(GRAY)
+        self.surPreview.fill(BLACK)
 
         scrollSize = 60
         running = True
@@ -122,6 +125,7 @@ class Startbildschirm():
         insertMode = False
         deleteMode = False
         scrolled = 0
+        drawPic = None
 
         while running: 
 
@@ -156,13 +160,16 @@ class Startbildschirm():
                             pic.height = int(pic.width / pic.ratio)
                             pic.refreshMap()
                             self.placePictures(self.sorted, self.surSortiert, shiftY = scrolled)
-                    elif ev.key == pygame.K_RIGHT and self.preview.url != "" and drawPic in self.sorted[:-1]:
+                    elif (ev.key == pygame.K_DOWN or ev.key == pygame.K_RIGHT) and self.preview.url != "" and drawPic in self.sorted[:-1]:
                         self.previewUrl(self.sorted[self.sorted.index(drawPic) + 1])
                         drawPic = self.sorted[self.sorted.index(drawPic) + 1]
-                    elif ev.key == pygame.K_LEFT and self.preview.url != "" and drawPic in self.sorted[1:]:
+                        if drawPic.y + drawPic.height > self.screen.get_height():
+                            toScroll += ((drawPic.y + drawPic.height - self.screen.get_height() + 5) / scrollSize)
+                    elif (ev.key == pygame.K_UP or ev.key == pygame.K_LEFT) and self.preview.url != "" and drawPic in self.sorted[1:]:
                         self.previewUrl(self.sorted[self.sorted.index(drawPic) - 1])
                         drawPic = self.sorted[self.sorted.index(drawPic) - 1]
-
+                        if drawPic.y < 0:
+                            toScroll += ((drawPic.y - 5) / scrollSize)
                         
                 elif ev.type == pygame.KEYUP: 
                     if ev.key == pygame.K_i:
@@ -196,7 +203,6 @@ class Startbildschirm():
                                         else:
                                             self.sorted.remove(drawPic)
                                         self.sorted.insert(pos, drawPic)
-                                        print("inserted:" + str(i))
                                         break
                             else:
                                 self.sorted.append(drawPic)
@@ -208,13 +214,17 @@ class Startbildschirm():
                                 drawPic.y += dragPos[1]
                                 if drawPic in self.sorted:
                                     self.sorted.remove(drawPic)
-                                    self.otherImages.append(drawPic)
+                                    self.otherImages.insert(0, drawPic)
+                                else:
+                                    self.otherImages.insert(0, self.otherImages.pop(self.otherImages.index(drawPic)))
                         dragPos[0] = 0
                         dragPos[1] = 0
 
             if toScroll != 0:
                 if mouse[0] < self.surSortiert.get_width():
-                    if scrolled - toScroll * scrollSize <= 0:
+                    up = toScroll * scrollSize > 0 or scrolled - toScroll * scrollSize <= 0
+                    down = toScroll * scrollSize < 0 or self.sorted[-1].y + self.sorted[-1].height > self.screen.get_height()
+                    if up and down:
                         for pic in self.sorted:
                             pic.y -= toScroll * scrollSize
                         scrolled -= toScroll * scrollSize
@@ -267,12 +277,15 @@ class Startbildschirm():
             self.screen.blit(self.surAlle, (self.surSortiert.get_width(), self.surPreview.get_height()))
 
             for pic in self.sorted:
-                pic.drawRectangle(self.screen, hoverColor)
+                pic.drawRectangle(self.screen, BLACK)
                 pic.draw(self.screen)
 
-            for pic in self.otherImages:
-                pic.drawRectangle(self.screen, hoverColor)
-                pic.draw(self.screen)
+            for i in range(len(self.otherImages)):
+                self.otherImages[len(self.otherImages) - i - 1].drawRectangle(self.screen, BLACK)
+                self.otherImages[len(self.otherImages) - i - 1].draw(self.screen)
+            
+            if drawPic != None:
+                drawPic.drawFlag(self.screen, MARKUP_COLOR)
 
             self.screen.blit(self.surPreview, (self.surSortiert.get_width(), 0))
             self.screen.blit(self.tmpScreen, dragPos)
