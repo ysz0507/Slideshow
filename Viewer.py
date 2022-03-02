@@ -1,10 +1,10 @@
-from faulthandler import dump_traceback
+
 import json
 import os
-from re import I
-from xml.dom.minidom import DOMImplementation
 import pygame
 import time
+
+from Editor import Startbildschirm
 
 class Button():
     def __init__(self, x = 10, y = 10, width = 100, height = 50, name = "", center=False):
@@ -21,7 +21,7 @@ class Button():
     def checkLocation(self, mouseX, mouseY):
         return self.x < mouseX < self.x + self.width and self.y < mouseY < self.y + self.height
 
-    def drawRectangle(self, screen, color = (50, 50, 50)):
+    def drawRectangle(self, screen, color):
         pygame.draw.rect(screen, color, [self.x, self.y, self.width, self.height])
 
     def drawText(self, screen, font):
@@ -34,10 +34,10 @@ class Button():
 
 class Viewer():
 
-    def __init__(self):
+    def __init__(self, duration = 5):
         fullscreen = True
-        automatisch = True
-        intervall = 5
+        automatisch = not (duration == 0)
+        intervall = duration
         dock = 10
         acceleration = 1
 
@@ -45,7 +45,7 @@ class Viewer():
             maps = list(json.load(file).get("order"))
         
         pygame.init()
-        pygame.mouse.set_cursor((8,8),(0,0),(0,0,0,0,0,0,0,0),(0,0,0,0,0,0,0,0))
+        pygame.mouse.set_visible(False)
         clock = pygame.time.Clock()
 
         dimension = (1000,650) 
@@ -59,7 +59,7 @@ class Viewer():
         tmpScreen = pygame.Surface(dimension)
         tmpScreen.set_alpha(125)
         
-        pygame.display.set_caption("Diashow")
+        pygame.display.set_caption("Slideshow")
 
         split = 0.3
         links = Button(0, 0, dimension[0] * split, dimension[1])
@@ -162,7 +162,6 @@ class Viewer():
             pygame.display.update() 
             clock.tick(40)
 
-        pygame.quit() 
 
 class Startmenu:
     def __init__(self):
@@ -181,13 +180,19 @@ class Startmenu:
         duration = 8
         self.reloadTextSurface(font, str(duration))
 
+        NORMAL_COLOR = (220, 220, 220)
+        HOVER_COLOR = (190, 190, 190)
+        PRESSED_COLOR = (100, 100, 100)
+
         running = True
+        pressed = False
         while running:
             mouse = pygame.mouse.get_pos()
             for ev in pygame.event.get(): 
                 if ev.type == pygame.QUIT: 
                     running = False
-                elif ev.type == pygame.MOUSEBUTTONDOWN: 
+                elif ev.type == pygame.MOUSEBUTTONUP: 
+                    pressed = False
                     for button in self.buttons:
                         if button.checkLocation(mouse[0], mouse[1]):
                             if button.name == "How to use":
@@ -199,8 +204,18 @@ class Startmenu:
                                 button.name = "Back"
                             elif button.name == "Back":
                                 self.reloadTextSurface(font, str(duration))
+                            elif button.name == "Edit / Create":
+                                start = Startbildschirm()
+                                start.mainloop()
+                                pygame.display.set_caption("Slideshow")
+                            elif button.name == "Start Slideshow":
+                                Viewer(duration)
+                                self.screen = pygame.display.set_mode(self.dimension)
+                                pygame.mouse.set_visible(True)
                             else:
                                 print(button.name)
+                elif ev.type == pygame.MOUSEBUTTONDOWN: 
+                    pressed = True
                 elif ev.type == pygame.KEYDOWN: 
                     if ev.key == pygame.K_ESCAPE:
                         running = False
@@ -216,7 +231,14 @@ class Startmenu:
             self.screen.blit(self.surText, (0, 0))
 
             for button in self.buttons:
-                button.drawRectangle(self.screen, (0, 255, 0))
+                if not button.checkLocation(mouse[0], mouse[1]):
+                    button.drawRectangle(self.screen, NORMAL_COLOR)
+                else:
+                    if pressed:
+                        button.drawRectangle(self.screen, PRESSED_COLOR)
+                    else:
+                        button.drawRectangle(self.screen, HOVER_COLOR)
+
                 button.drawText(self.screen, font)
 
 
@@ -253,7 +275,7 @@ class Startmenu:
         self.buttons.append(Button(name = "Edit / Create", x=self.dimension[0]/2, y = dy, width= 200, height=80, center=True))
         dy += 80 + 20
         dy += self.writeText(["Finally start your slideshow with " + duration + " seconds per image", "(Change amount of seconds with + or - on your keyboard)"], font, dy) + 10
-        self.buttons.append(Button(name = "Start Presentation", x=self.dimension[0]/2, y=dy, width= 300, height=80, center=True))
+        self.buttons.append(Button(name = "Start Slideshow", x=self.dimension[0]/2, y=dy, width= 300, height=80, center=True))
 
     def loadInstructions(self, font):
         self.surText.fill(self.GRAY)
@@ -268,7 +290,7 @@ class Startmenu:
         control = []
         control.append("F - Format and jump to start")
         control.append("S - Save current order")
-        control.append("- and + for De-/Increase size of image")
+        control.append("- and + for de-/increasing size of image")
         dy += self.writeText(control, font, dy) + 40
 
         control = []
@@ -281,4 +303,4 @@ class Startmenu:
         
 
 if __name__ == '__main__':
-    start = Startmenu()
+    Startmenu()

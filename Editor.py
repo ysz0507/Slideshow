@@ -3,7 +3,6 @@ import json
 import pygame
 import os
 from PIL import Image
-import Viewer
 
 class Picture():
     def __init__(self, url, x = 10, y = 10, width = 200, height = 140, date = None):
@@ -68,7 +67,7 @@ class Startbildschirm():
         
         self.tmpScreen = pygame.Surface((dimension[0] + 200, dimension[1] + 200))
         self.tmpScreen.set_alpha(180)
-        pygame.display.set_caption("Diashow - Editor")
+        pygame.display.set_caption("Slideshow - Editor")
 
         splitX = 0.3
         splitY = 0.6
@@ -137,6 +136,7 @@ class Startbildschirm():
             mouse = pygame.mouse.get_pos() 
             for ev in pygame.event.get(): 
 
+                print(ev.__dict__)
                 if ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_ESCAPE:
                         running = False
@@ -183,7 +183,6 @@ class Startbildschirm():
                 
                 elif ev.type == pygame.QUIT: 
                     running = False
-
                 elif ev.type == pygame.MOUSEBUTTONDOWN: 
                     # 4 and 5 -> Mousewheel up and down
                     if ev.button == 4:
@@ -192,6 +191,7 @@ class Startbildschirm():
                         toScroll += 1
                     else:
                         pressed = True
+                    print(pressed)
 
                 elif ev.type == pygame.MOUSEBUTTONUP: 
                     pressed = False
@@ -237,12 +237,12 @@ class Startbildschirm():
                     for pic in self.otherImages:
                         pic.y -= toScroll * scrollSize
                 toScroll = 0
-
+                
             if pressed:
                 if firstTime:
                     firstTime = False
-
                     for pic in self.sorted + self.otherImages:
+                        print(pic.url)
                         if pic.checkLocation(mouse[0], mouse[1]):
                             
                             if not deleteMode:
@@ -264,6 +264,7 @@ class Startbildschirm():
                                         
                                 dragStart = mouse
                                 drawPic = pic
+                                print(type(drawPic))
                             else:
                                 # delete (d is pressed)
                                 if pic in self.sorted:
@@ -303,8 +304,6 @@ class Startbildschirm():
 
             pygame.display.update()
             clock.tick(40)
-
-        pygame.quit()
     
     def placePictures(self, pictures, surface, shiftX = 0, shiftY = 0, padding = 14):
         if len(pictures) == 0:
@@ -380,3 +379,4 @@ class Startbildschirm():
 if __name__ == '__main__':
     start = Startbildschirm()
     start.mainloop()
+    pygame.quit()
