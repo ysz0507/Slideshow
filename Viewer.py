@@ -1,20 +1,35 @@
+from faulthandler import dump_traceback
 import json
 import os
+from re import I
+from xml.dom.minidom import DOMImplementation
 import pygame
 import time
 
 class Button():
-    def __init__(self, x = 10, y = 10, width = 100, height = 50):
-        self.x = x
-        self.y = y
+    def __init__(self, x = 10, y = 10, width = 100, height = 50, name = "", center=False):
         self.width = width
         self.height = height
+        self.y = y
+        if not center:
+            self.x = x
+        else:
+            self.x = x - width/2
+        if name != "":
+            self.name = name
 
     def checkLocation(self, mouseX, mouseY):
         return self.x < mouseX < self.x + self.width and self.y < mouseY < self.y + self.height
 
-    def drawRectangle(self, screen, color):
+    def drawRectangle(self, screen, color = (50, 50, 50)):
         pygame.draw.rect(screen, color, [self.x, self.y, self.width, self.height])
+
+    def drawText(self, screen, font):
+        text = font.render(self.name, False, (0, 0, 0))
+        textRect = text.get_rect()
+        textRect.center = (self.x + self.width/2, self.y + self.height/2) 
+        screen.blit(text, textRect)
+
 
 
 class Viewer():
@@ -149,8 +164,121 @@ class Viewer():
 
         pygame.quit() 
 
-    
+class Startmenu:
+    def __init__(self):
+        pygame.init()
 
+        self.GRAY = (156, 156, 156)
+        clock = pygame.time.Clock()
+
+        self.dimension = (1000,650) 
+        self.screen = pygame.display.set_mode(self.dimension)
+        self.screen.fill((255, 255, 255))
+        font = pygame.font.SysFont('arialnarrow', 40) 
+        pygame.display.set_caption("Slideshow")
+
+        self.surText = pygame.Surface(self.dimension)
+        duration = 8
+        self.reloadTextSurface(font, str(duration))
+
+        running = True
+        while running:
+            mouse = pygame.mouse.get_pos()
+            for ev in pygame.event.get(): 
+                if ev.type == pygame.QUIT: 
+                    running = False
+                elif ev.type == pygame.MOUSEBUTTONDOWN: 
+                    for button in self.buttons:
+                        if button.checkLocation(mouse[0], mouse[1]):
+                            if button.name == "How to use":
+                                self.loadInstructions(font)
+                            elif button.name == "Next":
+                                self.surText.fill(self.GRAY)
+                                large = pygame.image.load(os.path.join(os.getcwd(), "example.png")).convert()
+                                self.surText.blit(pygame.transform.smoothscale(large, self.dimension), (0, 0))
+                                button.name = "Back"
+                            elif button.name == "Back":
+                                self.reloadTextSurface(font, str(duration))
+                            else:
+                                print(button.name)
+                elif ev.type == pygame.KEYDOWN: 
+                    if ev.key == pygame.K_ESCAPE:
+                        running = False
+                    elif ev.key in (pygame.K_PLUS, pygame.K_UP, pygame.K_RIGHT):
+                        duration += 1
+                        duration %= 45 
+                        self.reloadTextSurface(font, str(duration))
+                    elif ev.key in (pygame.K_MINUS, pygame.K_DOWN, pygame.K_LEFT):
+                        duration -= 1 
+                        duration %= 45
+                        self.reloadTextSurface(font, str(duration))
+
+            self.screen.blit(self.surText, (0, 0))
+
+            for button in self.buttons:
+                button.drawRectangle(self.screen, (0, 255, 0))
+                button.drawText(self.screen, font)
+
+
+            pygame.display.update()
+            clock.tick(40)
+
+        pygame.quit()
+
+    def writeText(self, textList, font, y=4):
+        dy = 0
+        i = 0
+        textList.append("end")
+        while i < len(textList) - 1:
+            sur = font.render(textList[i], False, (0, 0, 0))
+            textRect = sur.get_rect()
+            textRect.midtop = (self.screen.get_width()/2, y + dy) 
+            self.surText.blit(sur, textRect)
+            dy += sur.get_height()
+            i += 1
+        return dy
+
+    def reloadTextSurface(self, font, duration):
+        self.surText.fill(self.GRAY)
+        self.buttons = []
+
+        if(duration == "0"):
+            duration = "infinite"
+        
+        dy = 50
+        dy += self.writeText(["Before you start: Read the controls and instructions carefully!"], font, dy) + 10
+        self.buttons.append(Button(name = "How to use", x=self.dimension[0]/2, y = dy, width= 200, height=80, center=True))
+        dy += 80 + 20
+        dy += self.writeText(["Than create and edit your slideshow with this button:", "(Tip: Do not forget to save with s)"], font, dy) + 10
+        self.buttons.append(Button(name = "Edit / Create", x=self.dimension[0]/2, y = dy, width= 200, height=80, center=True))
+        dy += 80 + 20
+        dy += self.writeText(["Finally start your slideshow with " + duration + " seconds per image", "(Change amount of seconds with + or - on your keyboard)"], font, dy) + 10
+        self.buttons.append(Button(name = "Start Presentation", x=self.dimension[0]/2, y=dy, width= 300, height=80, center=True))
+
+    def loadInstructions(self, font):
+        self.surText.fill(self.GRAY)
+        self.buttons = []
+
+        control = []
+        control.append("Use arrows for navigation")
+        control.append("Drag image to sort manually")
+        dy = 30
+        dy += self.writeText(control, font, dy) + 40
+
+        control = []
+        control.append("F - Format and jump to start")
+        control.append("S - Save current order")
+        control.append("- and + for De-/Increase size of image")
+        dy += self.writeText(control, font, dy) + 40
+
+        control = []
+        control.append("Hold key to change mode of your click:")
+        control.append("D - Delete the clicked image")
+        control.append("I - Insert into the ordered images, if the shooting date is available")
+        dy += self.writeText(control, font, dy) + 40
+
+        self.buttons.append(Button(name = "Next", x=self.dimension[0]/2, y=dy, width= 300, height=80, center=True))
+        
 
 if __name__ == '__main__':
-    start = Viewer()
+    start = Startmenu()

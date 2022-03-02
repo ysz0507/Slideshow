@@ -18,6 +18,8 @@ class Picture():
             self.refreshMap()
 
     def refreshMap(self):
+        if self.url == "":
+            return
         dimension = (self.width, self.height)
         largeMap = pygame.image.load(os.path.join(os.getcwd(), "pictures" , self.url)).convert()
         imgRatio = largeMap.get_width() / largeMap.get_height()
@@ -107,7 +109,7 @@ class Startbildschirm():
                 continue
 
     def mainloop(self):
-        GRAY = (130, 130, 130)
+        GRAY = (156, 156, 156)
         BLACK = (0, 0, 0)
         MARKUP_COLOR = (226,135,67)
 
@@ -239,8 +241,6 @@ class Startbildschirm():
             if pressed:
                 if firstTime:
                     firstTime = False
-                    if self.preview.checkLocation(mouse[0], mouse[1]):
-                        print("klick")
 
                     for pic in self.sorted + self.otherImages:
                         if pic.checkLocation(mouse[0], mouse[1]):
