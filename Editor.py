@@ -59,7 +59,7 @@ class Startbildschirm():
         self.font = pygame.font.SysFont('arialnarrow', 20) 
         dimension = (1000,650) 
         if(not fullscreen):
-            self.screen = pygame.display.set_mode(dimension)
+            self.screen = pygame.display.set_mode(dimension, pygame.RESIZABLE)
         else:
             self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
             infoObject = pygame.display.Info()
@@ -136,8 +136,10 @@ class Startbildschirm():
             mouse = pygame.mouse.get_pos() 
             for ev in pygame.event.get(): 
 
-                print(ev.__dict__)
-                if ev.type == pygame.KEYDOWN:
+                if ev.type == pygame.VIDEORESIZE:
+                    self.resize(ev.dict.get("size"))
+                    scrolled = 0
+                elif ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_ESCAPE:
                         running = False
                     elif ev.key == pygame.K_f:
@@ -191,7 +193,6 @@ class Startbildschirm():
                         toScroll += 1
                     else:
                         pressed = True
-                    print(pressed)
 
                 elif ev.type == pygame.MOUSEBUTTONUP: 
                     pressed = False
@@ -242,7 +243,6 @@ class Startbildschirm():
                 if firstTime:
                     firstTime = False
                     for pic in self.sorted + self.otherImages:
-                        print(pic.url)
                         if pic.checkLocation(mouse[0], mouse[1]):
                             
                             if not deleteMode:
@@ -264,7 +264,6 @@ class Startbildschirm():
                                         
                                 dragStart = mouse
                                 drawPic = pic
-                                print(type(drawPic))
                             else:
                                 # delete (d is pressed)
                                 if pic in self.sorted:
@@ -310,10 +309,12 @@ class Startbildschirm():
             return
         extreme = [0, padding]
         picsPerRow = int((surface.get_width() + padding) / (pictures[0].width + padding))
+        if picsPerRow == 0:
+            picsPerRow = 1
         shiftX += int((surface.get_width() - (picsPerRow * pictures[0].width + (picsPerRow - 1) * padding)) * 0.5)
         i = 0
         while i < len(pictures):
-            if extreme[0] + pictures[i].width < surface.get_width():
+            if extreme[0] + pictures[i].width < surface.get_width() or extreme[0] == 0:
                 pictures[i].x = extreme[0] + shiftX
                 pictures[i].y = extreme[1] + shiftY
                 extreme[0] += padding + pictures[i].width
@@ -374,6 +375,16 @@ class Startbildschirm():
         except FileNotFoundError:
             print("Fehler beim Speichervorgang")
             print(jsonData)
+
+    def resize(self, dimension, splitX=0.3, splitY=0.6):
+        self.tmpScreen = pygame.transform.smoothscale(self.tmpScreen, (dimension[0] + 200, dimension[1] + 200))
+        self.surSortiert = pygame.transform.smoothscale(self.surSortiert, (dimension[0] * splitX, dimension[1]))
+        self.surAlle = pygame.transform.smoothscale(self.surAlle, (dimension[0] * (1-splitX), dimension[1] * (1-splitY)))
+        self.surPreview = pygame.transform.smoothscale(self.surPreview, (dimension[0] * (1-splitX), dimension[1] * splitY))
+        self.preview.width = self.surPreview.get_width()
+        self.preview.height = self.surPreview.get_height()
+        self.placePictures(self.otherImages, self.surAlle, self.surSortiert.get_width(), self.surPreview.get_height())
+        self.placePictures(self.sorted, self.surSortiert)
 
 
 if __name__ == '__main__':

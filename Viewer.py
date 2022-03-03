@@ -207,6 +207,7 @@ class Startmenu:
                             elif button.name == "Edit / Create":
                                 start = Startbildschirm()
                                 start.mainloop()
+                                self.screen = pygame.display.set_mode(self.dimension)
                                 pygame.display.set_caption("Slideshow")
                             elif button.name == "Start Slideshow":
                                 Viewer(duration)
