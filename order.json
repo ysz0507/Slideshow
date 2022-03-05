@@ -1,9 +1,11 @@
 {
     "order": [
-        "young.png",
-        "teen.gif",
-        "student.jpg",
-        "man.jpeg"
+        "ground.tiff",
+        "seed.tiff",
+        "sapling.tiff",
+        "leaves.tiff",
+        "blossom.tiff",
+        "withered.tiff"
     ],
     "ignore": []
 }

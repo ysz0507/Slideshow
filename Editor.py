@@ -92,7 +92,7 @@ class Startbildschirm():
         self.otherImages = []
         obj = os.scandir("pictures")
         for entry in obj :
-            if entry.is_file() and entry.name != ".DS_Store" and entry.name[-4:] in (".png", ".jpg", "jpeg", ".tif", ".gif"):
+            if entry.is_file() and entry.name != ".DS_Store" and entry.name[-4:] in (".png", ".jpg", "jpeg", ".tif", "tiff", ".gif"):
                 if not entry.name in data.get("order")+data.get("ignore"):
                     self.otherImages.append(Picture(entry.name))
         self.placePictures(self.otherImages, self.surAlle, self.surSortiert.get_width(), self.surPreview.get_height())
