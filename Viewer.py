@@ -31,7 +31,6 @@ class Button():
         screen.blit(text, textRect)
 
 
-
 class Viewer():
 
     def __init__(self, duration = 5):

@@ -1,11 +1,11 @@
 {
     "order": [
-        "ground.tiff",
-        "seed.tiff",
-        "sapling.tiff",
+        "ground.jpeg",
+        "seed.gif",
+        "sapling.JPG",
         "leaves.tiff",
-        "blossom.tiff",
-        "withered.tiff"
+        "blossom.png",
+        "withered.jpg"
     ],
     "ignore": []
 }

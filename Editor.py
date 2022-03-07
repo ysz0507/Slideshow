@@ -85,14 +85,14 @@ class Startbildschirm():
                     self.sorted.append(Picture(name))
         except FileNotFoundError:
             data = {"order":[], "ignore":[]}
-            print("No File imported")
+            print("No ordered images imported")
 
         self.placePictures(self.sorted, self.surSortiert)
 
         self.otherImages = []
         obj = os.scandir("pictures")
         for entry in obj :
-            if entry.is_file() and entry.name != ".DS_Store" and entry.name[-4:] in (".png", ".jpg", "jpeg", ".tif", "tiff", ".gif"):
+            if entry.is_file() and entry.name != ".DS_Store" and entry.name.rsplit(".")[-1].lower() in ("png", "jpg", "jpeg", "tif", "tiff", "gif"):
                 if not entry.name in data.get("order")+data.get("ignore"):
                     self.otherImages.append(Picture(entry.name))
         self.placePictures(self.otherImages, self.surAlle, self.surSortiert.get_width(), self.surPreview.get_height())
@@ -227,14 +227,14 @@ class Startbildschirm():
                         dragPos[1] = 0
 
             if toScroll != 0:
-                if mouse[0] < self.surSortiert.get_width():
+                if mouse[0] < self.surSortiert.get_width() and len(self.sorted) > 0:
                     up = toScroll * scrollSize > 0 or scrolled - toScroll * scrollSize <= 0
                     down = toScroll * scrollSize < 0 or self.sorted[-1].y + self.sorted[-1].height > self.screen.get_height()
                     if up and down:
                         for pic in self.sorted:
                             pic.y -= toScroll * scrollSize
                         scrolled -= toScroll * scrollSize
-                elif mouse[1] > self.surPreview.get_height():
+                elif mouse[1] > self.surPreview.get_height() and len(self.otherImages) > 0:
                     for pic in self.otherImages:
                         pic.y -= toScroll * scrollSize
                 toScroll = 0
