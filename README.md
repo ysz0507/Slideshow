@@ -5,8 +5,41 @@ Dies ist ein kleines einfaches Programm zum Erstellen von Diashows. Ziehe einfac
 </br>PS: Der erste Schritt ist es alle Bilder in den Ordner "pictures" zu verschieben.
 
 ## ENG
-This is an easy and intuitiv program to create your own slideshow. Just order the pictures manually or insert them automated according to their metadata.
+This is an easy and intuitiv program to create your own slideshow. Just order the pictures manually or insert them automated according to their meta-data.
 </br>PS: The first step is copying all your images into the "pictures" folder.
+
+<img src="example.png">
+
+## How to use
+<table>
+    <tr>
+        <td></td>
+        <td><b>Meaning (EN)</b></td>
+        <td><b>Bedeutung (DE)</b></td>
+    </tr>
+    <tr>
+        <td>White Border</td>
+        <td>This image has meta-data</td>
+        <td>Dieses Bild hat Metadaten</td>
+    </tr>
+    <tr>
+        <td>Orange Corner</td>
+        <td>This image is shown in the preview window. If available the recording date is shown.</td>
+        <td>Dieses Bild wird im Vorschaufenster angezeigt. Falls Verfügbar wird das Aufnahmedatum angezeigt.</td>
+    </tr>
+</table>
+
+<table>
+  <tr>
+    <td><b>EN</b></td>
+    <td><b>DE</b></td>
+  </tr>
+  <tr>
+    <td>Images on the left side are ordered. They will be shown in exactly this order from top to bottom. On the right side is space to organize yourself. There are also some shortcuts to make sorting handy.</td>
+    <td>Die Bilder auf der linken Seite sind bereits in der Reihenfolge der tatsächlichen Präsentation angeordnet. Auf der rechten Seite ist Platz, um Ordnung zu schaffen. Es gibt auch shortcuts, um die Arbeit zu beschleunigen.</td>
+  </tr>
+</table>
+
 
 ## The controls are:
 <table>
